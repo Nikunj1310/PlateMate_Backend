@@ -1,0 +1,9 @@
+{
+  "name": "event-bus",
+  "version": "1.0.0",
+  "description": "PlateMate shared event bus",
+  "main": "index.js",
+  "dependencies": {
+    "amqplib": "^0.10.3"
+  }
+}
