@@ -1,0 +1,41 @@
+CREATE TABLE IF NOT EXISTS Users (
+    User_ID SERIAL PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(150) UNIQUE NOT NULL,
+    Password_Hash VARCHAR(255) NULL,
+    Auth_Provider VARCHAR(50) DEFAULT 'local',
+    Provider_ID VARCHAR(255) NULL,
+    Refresh_Token TEXT NULL,
+    Reset_Token VARCHAR(255) NULL,
+    Reset_Token_Expiry TIMESTAMP NULL,
+    Device_Token VARCHAR(255) NULL,
+    Join_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Status VARCHAR(20) DEFAULT 'Active'
+);
+
+CREATE TABLE IF NOT EXISTS Locations (
+    Loc_ID SERIAL PRIMARY KEY,
+    User_ID INT NOT NULL REFERENCES Users(User_ID) ON DELETE CASCADE,
+    Address TEXT NOT NULL,
+    Latitude DECIMAL(10, 8) NOT NULL,
+    Longitude DECIMAL(11, 8) NOT NULL,
+    Is_Active BOOLEAN DEFAULT FALSE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_loc_per_user ON Locations (User_ID) WHERE Is_Active = TRUE;
+
+CREATE TABLE IF NOT EXISTS Blocks (
+    Blocker_ID INT NOT NULL REFERENCES Users(User_ID) ON DELETE CASCADE,
+    Blocked_ID INT NOT NULL REFERENCES Users(User_ID) ON DELETE CASCADE,
+    Created_At TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (Blocker_ID, Blocked_ID)
+);
+
+CREATE TABLE IF NOT EXISTS Reports (
+    Report_ID SERIAL PRIMARY KEY,
+    Reporter_ID INT NOT NULL REFERENCES Users(User_ID) ON DELETE CASCADE,
+    Reported_User_ID INT REFERENCES Users(User_ID) ON DELETE SET NULL,
+    Reported_Post_ID INT NULL,
+    Reason TEXT NOT NULL,
+    Status VARCHAR(20) DEFAULT 'Pending'
+);
