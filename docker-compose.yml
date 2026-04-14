@@ -1,5 +1,12 @@
 version: '3.8'
 
+# Shared logging configuration (JSON driver with rotation)
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
 services:
   rabbitmq:
     image: rabbitmq:3-management
@@ -7,14 +14,21 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 20s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
 
   postgres_db1:
     image: postgres:15-alpine
@@ -32,7 +46,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   postgres_db2:
     image: postgres:15-alpine
@@ -50,7 +71,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   postgres_db3:
     image: postgres:15-alpine
@@ -68,7 +96,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   postgres_db4:
     image: postgres:15-alpine
@@ -86,7 +121,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   postgres_db5:
     image: postgres:15-alpine
@@ -104,7 +146,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   user-location-service:
     build: ./services/user-location-service
@@ -119,6 +168,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres_db1:
         condition: service_healthy
@@ -129,7 +179,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   food-inventory-service:
     build: ./services/food-inventory-service
@@ -144,6 +201,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres_db2:
         condition: service_healthy
@@ -154,7 +212,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   claim-service:
     build: ./services/claim-service
@@ -169,6 +234,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres_db3:
         condition: service_healthy
@@ -179,7 +245,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   reputation-service:
     build: ./services/reputation-service
@@ -194,6 +267,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres_db4:
         condition: service_healthy
@@ -204,7 +278,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
   messaging-service:
     build: ./services/messaging-service
@@ -219,6 +300,7 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+      NODE_ENV: ${NODE_ENV:-production}
     depends_on:
       postgres_db5:
         condition: service_healthy
@@ -229,7 +311,14 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
     restart: unless-stopped
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 256M
 
 volumes:
   postgres_db1_data:
