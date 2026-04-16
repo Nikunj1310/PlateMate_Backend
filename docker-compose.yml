@@ -107,7 +107,9 @@ services:
     restart: unless-stopped
 
   user-location-service:
-    build: ./services/user-location-service
+    build:
+      context: .
+      dockerfile: ./services/user-location-service/Dockerfile
     ports:
       - "3001:3001"
     environment:
@@ -132,7 +134,9 @@ services:
     restart: unless-stopped
 
   food-inventory-service:
-    build: ./services/food-inventory-service
+    build:
+      context: .
+      dockerfile: ./services/food-inventory-service/Dockerfile
     ports:
       - "3002:3002"
     environment:
@@ -157,7 +161,9 @@ services:
     restart: unless-stopped
 
   claim-service:
-    build: ./services/claim-service
+    build:
+      context: .
+      dockerfile: ./services/claim-service/Dockerfile
     ports:
       - "3003:3003"
     environment:
@@ -182,7 +188,9 @@ services:
     restart: unless-stopped
 
   reputation-service:
-    build: ./services/reputation-service
+    build:
+      context: .
+      dockerfile: ./services/reputation-service/Dockerfile
     ports:
       - "3004:3004"
     environment:
@@ -207,7 +215,9 @@ services:
     restart: unless-stopped
 
   messaging-service:
-    build: ./services/messaging-service
+    build:
+      context: .
+      dockerfile: ./services/messaging-service/Dockerfile
     ports:
       - "3005:3005"
     environment:
