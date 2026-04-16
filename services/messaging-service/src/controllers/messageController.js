@@ -49,4 +49,21 @@ const markMessagesRead = async (req, res) => {
   }
 };
 
-module.exports = { getMessages, sendMessage, markMessagesRead };
+const getConversations = async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT DISTINCT ON (Post_ID, CASE WHEN Sender_ID = $1 THEN Receiver_ID ELSE Sender_ID END)
+        Post_ID, Sender_ID, Receiver_ID, Content, Image_URL, Sent_At, Is_Read
+      FROM Messages
+      WHERE Sender_ID = $1 OR Receiver_ID = $1
+      ORDER BY Post_ID, CASE WHEN Sender_ID = $1 THEN Receiver_ID ELSE Sender_ID END, Sent_At DESC`,
+      [req.user.id]
+    );
+    return res.json({ conversations: result.rows });
+  } catch (err) {
+    console.error('getConversations error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = { getMessages, getConversations, sendMessage, markMessagesRead };

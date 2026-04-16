@@ -91,4 +91,24 @@ const deleteLocation = async (req, res) => {
   }
 };
 
-module.exports = { getLocations, addLocation, activateLocation, deleteLocation };
+const updateLocation = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { address, latitude, longitude } = req.body;
+    const result = await pool.query(
+      `UPDATE Locations SET
+        Address = COALESCE($1, Address),
+        Latitude = COALESCE($2, Latitude),
+        Longitude = COALESCE($3, Longitude)
+       WHERE Loc_ID = $4 AND User_ID = $5 RETURNING *`,
+      [address, latitude, longitude, id, req.user.id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Location not found' });
+    return res.json({ location: result.rows[0] });
+  } catch (err) {
+    console.error('updateLocation error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = { getLocations, addLocation, activateLocation, deleteLocation, updateLocation };

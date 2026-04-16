@@ -164,4 +164,121 @@ const resetPassword = async (req, res) => {
   }
 };
 
-module.exports = { register, login, refresh, logout, getMe, forgotPassword, resetPassword };
+const oauthGoogle = async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: 'token required' });
+    
+    const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const userData = await userRes.json();
+    if (!userRes.ok) return res.status(401).json({ error: 'Invalid Google token' });
+
+    const email = userData.email;
+    const name = userData.name || email.split('@')[0];
+    
+    let result = await pool.query('SELECT * FROM Users WHERE Email = $1', [email]);
+    let user;
+    if (result.rows.length === 0) {
+      const dbRes = await pool.query(
+        `INSERT INTO Users (Name, Email, Auth_Provider) VALUES ($1, $2, $3) RETURNING User_ID, Name, Email, Join_Date, Status`,
+        [name, email, 'Google']
+      );
+      user = dbRes.rows[0];
+      await publishEvent(EVENTS.USER_REGISTERED, { userId: user.user_id, name: user.name, email: user.email });
+    } else {
+      user = result.rows[0];
+      if (user.status === 'Banned') return res.status(403).json({ error: 'Account is banned' });
+    }
+    
+    const payload = { id: user.user_id, email: user.email };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    await pool.query('UPDATE Users SET Refresh_Token = $1 WHERE User_ID = $2', [refreshToken, user.user_id]);
+    return res.json({ accessToken, refreshToken, userId: user.user_id });
+  } catch (err) {
+    console.error('oauthGoogle error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const oauthGithub = async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'code required' });
+    
+    if (!process.env.GITHUB_CLIENT_ID || !process.env.GITHUB_CLIENT_SECRET) {
+      return res.status(500).json({ error: 'GitHub OAuth credentials not configured on backend.' });
+    }
+
+    // Exchange code for token
+    const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code
+      })
+    });
+    const tokenData = await tokenRes.json();
+    if (tokenData.error) return res.status(401).json({ error: tokenData.error_description || 'Invalid GitHub code' });
+
+    const githubToken = tokenData.access_token;
+    
+    // Get user profile
+    const userRes = await fetch('https://api.github.com/user', {
+      headers: { 
+        'Authorization': `token ${githubToken}`,
+        'User-Agent': 'PlateMate-Backend'
+      }
+    });
+    const userData = await userRes.json();
+    if (!userRes.ok) return res.status(401).json({ error: 'Failed to fetch GitHub user' });
+
+    let email = userData.email;
+    const name = userData.name || userData.login;
+
+    // If email is private, we fetch user emails explicitly
+    if (!email) {
+      const emailRes = await fetch('https://api.github.com/user/emails', {
+        headers: { 
+          'Authorization': `token ${githubToken}`,
+          'User-Agent': 'PlateMate-Backend'
+        }
+      });
+      const emails = await emailRes.json();
+      const primaryEmail = emails.find(e => e.primary);
+      email = primaryEmail ? primaryEmail.email : emails[0].email;
+    }
+    
+    let result = await pool.query('SELECT * FROM Users WHERE Email = $1', [email]);
+    let user;
+    if (result.rows.length === 0) {
+      const dbRes = await pool.query(
+        `INSERT INTO Users (Name, Email, Auth_Provider) VALUES ($1, $2, $3) RETURNING User_ID, Name, Email, Join_Date, Status`,
+        [name, email, 'GitHub']
+      );
+      user = dbRes.rows[0];
+      await publishEvent(EVENTS.USER_REGISTERED, { userId: user.user_id, name: user.name, email: user.email });
+    } else {
+      user = result.rows[0];
+      if (user.status === 'Banned') return res.status(403).json({ error: 'Account is banned' });
+    }
+    
+    const payload = { id: user.user_id, email: user.email };
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+    await pool.query('UPDATE Users SET Refresh_Token = $1 WHERE User_ID = $2', [refreshToken, user.user_id]);
+    return res.json({ accessToken, refreshToken, userId: user.user_id });
+  } catch (err) {
+    console.error('oauthGithub error:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = { register, login, refresh, logout, getMe, forgotPassword, resetPassword, oauthGoogle, oauthGithub };

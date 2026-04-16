@@ -109,9 +109,10 @@ services:
   user-location-service:
     build: ./services/user-location-service
     ports:
-      - "3001:3001"
+      - "0.0.0.0:3001:3001"
     environment:
       PORT: 3001
+      NODE_PATH: "/app/node_modules"
       DB_HOST: postgres_db1
       DB_PORT: 5432
       DB_NAME: platemate_db1
@@ -119,6 +120,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - ./shared:/shared
     depends_on:
       postgres_db1:
         condition: service_healthy
@@ -134,9 +137,10 @@ services:
   food-inventory-service:
     build: ./services/food-inventory-service
     ports:
-      - "3002:3002"
+      - "0.0.0.0:3002:3002"
     environment:
       PORT: 3002
+      NODE_PATH: "/app/node_modules"
       DB_HOST: postgres_db2
       DB_PORT: 5432
       DB_NAME: platemate_db2
@@ -144,6 +148,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - ./shared:/shared
     depends_on:
       postgres_db2:
         condition: service_healthy
@@ -159,9 +165,10 @@ services:
   claim-service:
     build: ./services/claim-service
     ports:
-      - "3003:3003"
+      - "0.0.0.0:3003:3003"
     environment:
       PORT: 3003
+      NODE_PATH: "/app/node_modules"
       DB_HOST: postgres_db3
       DB_PORT: 5432
       DB_NAME: platemate_db3
@@ -169,6 +176,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - ./shared:/shared
     depends_on:
       postgres_db3:
         condition: service_healthy
@@ -184,9 +193,10 @@ services:
   reputation-service:
     build: ./services/reputation-service
     ports:
-      - "3004:3004"
+      - "0.0.0.0:3004:3004"
     environment:
       PORT: 3004
+      NODE_PATH: "/app/node_modules"
       DB_HOST: postgres_db4
       DB_PORT: 5432
       DB_NAME: platemate_db4
@@ -194,6 +204,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - ./shared:/shared
     depends_on:
       postgres_db4:
         condition: service_healthy
@@ -209,9 +221,10 @@ services:
   messaging-service:
     build: ./services/messaging-service
     ports:
-      - "3005:3005"
+      - "0.0.0.0:3005:3005"
     environment:
       PORT: 3005
+      NODE_PATH: "/app/node_modules"
       DB_HOST: postgres_db5
       DB_PORT: 5432
       DB_NAME: platemate_db5
@@ -219,6 +232,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-secret}
       RABBITMQ_URL: amqp://rabbitmq:5672
+    volumes:
+      - ./shared:/shared
     depends_on:
       postgres_db5:
         condition: service_healthy

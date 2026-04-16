@@ -58,6 +58,10 @@ const listPosts = async (req, res) => {
       params.push(parseFloat(lat), parseFloat(lng), parseFloat(radius));
       paramIdx += 3;
     }
+    if (req.query.donor_id) {
+      query += ` AND Donor_ID = $${paramIdx++}`;
+      params.push(parseInt(req.query.donor_id, 10));
+    }
     query += ' ORDER BY Created_At DESC';
     const result = await pool.query(query, params);
     return res.json({ posts: result.rows });
