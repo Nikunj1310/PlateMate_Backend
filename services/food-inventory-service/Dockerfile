@@ -1,9 +1,10 @@
 FROM node:20-alpine
-WORKDIR /app/services/food-inventory-service
-COPY services/food-inventory-service/package*.json ./
-RUN npm install --production
 WORKDIR /app
+COPY package*.json ./
+RUN npm install --production
 COPY . .
 WORKDIR /app/services/food-inventory-service
+RUN npm install --production
 EXPOSE 3002
-CMD ["node", "index.js"]
+WORKDIR /app
+CMD ["node", "services/food-inventory-service/index.js"]
