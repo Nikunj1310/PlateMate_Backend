@@ -156,7 +156,9 @@ services:
           memory: 256M
 
   user-location-service:
-    build: ./services/user-location-service
+    build:
+      context: .
+      dockerfile: ./services/user-location-service/Dockerfile
     ports:
       - "3001:3001"
     environment:
@@ -189,7 +191,9 @@ services:
           memory: 256M
 
   food-inventory-service:
-    build: ./services/food-inventory-service
+    build:
+      context: .
+      dockerfile: ./services/food-inventory-service/Dockerfile
     ports:
       - "3002:3002"
     environment:
@@ -222,7 +226,9 @@ services:
           memory: 256M
 
   claim-service:
-    build: ./services/claim-service
+    build:
+      context: .
+      dockerfile: ./services/claim-service/Dockerfile
     ports:
       - "3003:3003"
     environment:
@@ -255,7 +261,9 @@ services:
           memory: 256M
 
   reputation-service:
-    build: ./services/reputation-service
+    build:
+      context: .
+      dockerfile: ./services/reputation-service/Dockerfile
     ports:
       - "3004:3004"
     environment:
@@ -288,7 +296,9 @@ services:
           memory: 256M
 
   messaging-service:
-    build: ./services/messaging-service
+    build:
+      context: .
+      dockerfile: ./services/messaging-service/Dockerfile
     ports:
       - "3005:3005"
     environment:
