@@ -1,5 +1,3 @@
-version: '3.8'
-
 # Shared logging configuration (JSON driver with rotation)
 x-logging: &default-logging
   driver: json-file
